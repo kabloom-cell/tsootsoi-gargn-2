@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Game Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#f0f0f0;min-height:100vh}
+.pg{max-width:480px;margin:0 auto;padding:1.25rem}
+h1{font-size:24px;font-weight:700;margin-bottom:4px;color:#fff}
+.sub{font-size:14px;color:#888;margin-bottom:1.75rem}
+.lbl{font-size:12px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em}
+.num-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.75rem}
+.nb{padding:14px;border:1px solid #2a2a2a;border-radius:10px;background:#1a1a1a;font-size:18px;font-weight:600;color:#ccc;cursor:pointer;transition:all 0.15s}
+.nb:active{transform:scale(0.96)}
+.nb.sel{background:#c8a84b;border-color:#c8a84b;color:#0f0f0f}
+.name-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+input[type=text]{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:10px 12px;font-size:15px;color:#f0f0f0;outline:none;font-family:inherit}
+input[type=text]:focus{border-color:#c8a84b}
+input[type=text]::placeholder{color:#555}
+input[type=number]{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:10px 12px;font-size:15px;color:#f0f0f0;outline:none;font-family:inherit;width:120px}
+input[type=number]:focus{border-color:#c8a84b}
+.btn{padding:10px 16px;border-radius:10px;border:1px solid #2a2a2a;background:#1a1a1a;font-size:14px;font-weight:600;color:#f0f0f0;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.btn:active{transform:scale(0.97)}
+.btn.full{width:100%;padding:13px;font-size:15px;margin-top:6px}
+.btn.gold{background:#c8a84b;border-color:#c8a84b;color:#0f0f0f}
+.btn.red{border-color:#e05c5c;color:#e05c5c}
+.btn.green{border-color:#4caf7d;color:#4caf7d;background:#1a2e24}
+.btn.yellow{border-color:#c8a84b;color:#c8a84b;background:#2a2210}
+.btn.purple{border-color:#a87ae0;color:#a87ae0;background:#221a2e}
+.btn.purple-solid{border-color:#a87ae0;color:#0f0f0f;background:#a87ae0}
+.btn.muted{color:#666}
+.btn:disabled{opacity:0.3;cursor:not-allowed}
+.pc{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:0.85rem 1rem;margin-bottom:8px}
+.pc.broke{border-color:#e05c5c;background:#1f1010}
+.pc.split-sel{border-color:#a87ae0;background:#221a2e}
+.pc-top{display:flex;align-items:center;justify-content:space-between}
+.pc-left{display:flex;align-items:center;gap:10px}
+.pname{font-size:15px;font-weight:600;color:#f0f0f0}
+.pname.broke{color:#e05c5c}
+.bal{font-size:13px;margin-top:2px;font-weight:500}
+.bal-p{color:#4caf7d}
+.bal-n{color:#e05c5c}
+.bal-z{color:#666}
+.pc-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid #222}
+.round-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #1e1e1e}
+.split-bar{background:#221a2e;border:1px solid #a87ae0;border-radius:10px;padding:10px 1rem;margin-bottom:1rem;font-size:13px;color:#a87ae0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.toast{border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:1rem;display:none;font-weight:500}
+.sec{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.08em;margin:1.5rem 0 0.75rem}
+.db{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;margin-bottom:8px;overflow:hidden}
+.dh{display:flex;align-items:center;gap:8px;padding:9px 1rem;border-bottom:1px solid #222}
+.dhn{font-size:14px;font-weight:600;color:#f0f0f0}
+.dbody{padding:8px 1rem 10px}
+.dl{font-size:13px;color:#ccc;padding:3px 0;display:flex;gap:5px;align-items:baseline;flex-wrap:wrap}
+.dto{color:#4caf7d;font-weight:600}
+.damt{color:#e05c5c;font-weight:600}
+.dnone{font-size:13px;color:#555;font-style:italic}
+.hi{font-size:13px;color:#666;padding:6px 0;border-bottom:1px solid #1e1e1e}
+.hi:last-child{border-bottom:none}
+.hist-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:0.75rem 1rem}
+.skipped{opacity:0.4}
+.skip-badge{font-size:11px;padding:2px 7px;border-radius:6px;background:#2a2210;color:#c8a84b;border:1px solid #3a3010;margin-left:6px}
+.broke-badge{font-size:11px;padding:2px 7px;border-radius:6px;background:#2a1010;color:#e05c5c;border:1px solid #3a2020;margin-left:6px}
+.split-badge{font-size:11px;padding:2px 7px;border-radius:6px;background:#221a2e;color:#a87ae0;border:1px solid #3a2a4e;margin-left:6px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+.modal{background:#1a1a1a;border-radius:16px 16px 0 0;padding:1.5rem;width:100%;max-width:480px;border:1px solid #2a2a2a}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:1rem;color:#fff}
+.summary-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:1rem;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.summary-card.top{border-color:#c8a84b33;background:#1f1c10}
+.rank{font-size:22px;width:32px;text-align:center}
+.summary-info{flex:1}
+.summary-name{font-size:15px;font-weight:600;color:#f0f0f0}
+.summary-stats{font-size:12px;color:#666;margin-top:2px}
+.summary-bal{font-size:15px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="pg" id="app"></div>
+<div id="modal-root"></div>
+<script>
+const AC=[
+  {bg:'#1a2a3a',color:'#7ab3e0'},
+  {bg:'#1a2e24',color:'#6dcca0'},
+  {bg:'#2e2414',color:'#e0a84b'},
+  {bg:'#2e1a22',color:'#e07ab3'},
+  {bg:'#221a2e',color:'#a87ae0'},
+  {bg:'#2e1e1a',color:'#e08070'}
+];
+let S={screen:'setup',count:0,names:[],penalty:1000,players:[],round:1,history:[],splitMode:false,splitSelected:[]};
+
+function ini(n){return(n||'?').trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';}
+function avS(i,sm){const c=AC[i%6];const sz=sm?'width:26px;height:26px;font-size:10px':'width:36px;height:36px;font-size:13px';return `class="av" style="background:${c.bg};color:${c.color};${sz}"`;}
+function isBroke(p){return p.balance<=0;}
+
+function calcNet(){
+  const n=S.players.length;
+  const owes=Array.from({length:n},()=>Array(n).fill(0));
+  S.history.forEach(h=>{
+    if(h.type==='round'){
+      const winners=h.active.filter(i=>!h.losers.includes(i));
+      const pay=h.split?Math.floor(S.penalty/2):S.penalty;
+      h.losers.forEach(li=>{winners.forEach(i=>{owes[li][i]+=pay;});});
+    }
+  });
+  const net=Array.from({length:n},()=>Array(n).fill(0));
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const d=owes[i][j]-owes[j][i];if(d>0)net[i][j]=d;else if(d<0)net[j][i]=-d;}
+  return net;
+}
+
+function getLosses(){
+  const c={};S.players.forEach(p=>c[p.name]=0);
+  S.history.forEach(h=>{if(h.type==='round')h.losers.forEach(li=>{const nm=S.players[li]?.name;if(nm)c[nm]=(c[nm]||0)+1;});});
+  return c;
+}
+
+function render(){
+  document.getElementById('app').innerHTML=
+    S.screen==='setup'?rSetup():S.screen==='names'?rNames():S.screen==='summary'?rSummary():rGame();
+  attachEvents();
+}
+
+function rSetup(){
+  const btns=[2,3,4,5,6].map(n=>`<button class="nb${S.count===n?' sel':''}" data-n="${n}">${n}</button>`).join('');
+  return `<h1>&#127137; Card game</h1><p class="sub">Prize tracker</p>
+  <div class="lbl">How many players?</div>
+  <div class="num-grid">${btns}</div>
+  <div class="lbl" style="margin-top:1rem">Penalty per round</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem">
+    <input type="number" id="penalty-in" value="${S.penalty}" min="1" step="100"/>
+    <span style="font-size:14px;color:#666">&#x20AE; per loss</span>
+  </div>
+  <button class="btn full gold" id="next-btn" ${S.count<2?'disabled':''}>Continue &rarr;</button>`;
+}
+
+function rNames(){
+  const rows=Array.from({length:S.count},(_,i)=>{
+    const val=S.names[i]||'';
+    return `<div class="name-row">
+      <div ${avS(i,false)} id="av${i}">${val?ini(val):(i+1)}</div>
+      <input type="text" placeholder="Player ${i+1}" value="${val}" data-i="${i}" id="name${i}" maxlength="16" style="flex:1"/>
+    </div>`;
+  }).join('');
+  const ready=S.names.filter(n=>n&&n.trim()).length===S.count;
+  return `<h1>Player names</h1><p class="sub">${S.penalty.toLocaleString()} &#x20AE; per round &middot; ${S.count} players</p>
+  <div style="margin-bottom:1.25rem">${rows}</div>
+  <button class="btn full gold" id="start-btn" ${!ready?'disabled':''}>Start game</button>
+  <button class="btn full muted" id="back-btn">&#8592; Back</button>`;
+}
+
+function rSummary(){
+  const losses=getLosses();
+  const sorted=[...S.players].sort((a,b)=>b.balance-a.balance);
+  const totalRounds=S.history.filter(h=>h.type==='round').length;
+  const medals=['&#127945;','&#129352;','&#129353;'];
+  const rows=sorted.map((p,idx)=>{
+    const b=p.balance;
+    const bc=b>0?'#4caf7d':b<0?'#e05c5c':'#666';
+    const bs=(b>=0?'+':'')+b.toLocaleString()+' &#x20AE;';
+    const lc=losses[p.name]||0;
+    return `<div class="summary-card${idx===0?' top':''}">
+      <div class="rank">${medals[idx]||'#'+(idx+1)}</div>
+      <div class="summary-info">
+        <div class="summary-name">${p.name}</div>
+        <div class="summary-stats">Lost ${lc} round${lc!==1?'s':''}</div>
+      </div>
+      <div class="summary-bal" style="color:${bc}">${bs}</div>
+    </div>`;
+  }).join('');
+  return `<h1>Game over!</h1>
+  <p class="sub">${totalRounds} rounds &middot; ${S.penalty.toLocaleString()} &#x20AE; per round</p>
+  <div class="sec">Final standings</div>
+  ${rows}
+  <div style="display:flex;gap:8px;margin-top:1.5rem">
+    <button class="btn green" style="flex:1;padding:13px" id="rematch-btn">&#8635; Rematch</button>
+    <button class="btn muted" style="flex:1;padding:13px" id="newgame-btn">New game</button>
+  </div>`;
+}
+
+function rGame(){
+  const net=S.history.length?calcNet():null;
+  const splitBar=S.splitMode?`<div class="split-bar">
+    <span>Split mode &mdash; tap 2 losers (${S.splitSelected.length}/2 selected)</span>
+    <button class="btn muted" style="font-size:12px;padding:4px 10px" id="cancel-split">Cancel</button>
+  </div>`:'';
+
+  const cards=S.players.map((p,i)=>{
+    const b=p.balance;
+    const broke=isBroke(p);
+    const isSel=S.splitSelected.includes(i);
+    const bc=b>0?'bal-p':b<0?'bal-n':'bal-z';
+    const bs=(b>=0?'+':'')+b.toLocaleString()+' &#x20AE;';
+    const skipBadge=p.skipped?`<span class="skip-badge">skipped</span>`:'';
+    const brokeBadge=broke?`<span class="broke-badge">broke</span>`:'';
+    const splitBadge=isSel?`<span class="split-badge">loser</span>`:'';
+    let actionBtn='';
+    if(S.splitMode){
+      const canSel=S.splitSelected.length<2||isSel;
+      actionBtn=`<button class="btn${isSel?' purple-solid':' purple'}" style="font-size:12px;padding:5px 10px" data-split-sel="${i}" ${(!canSel&&!isSel)||p.skipped?'disabled':''}>${isSel?'Deselect':'Select'}</button>`;
+    } else {
+      actionBtn=`<button class="btn red" style="font-size:12px;padding:5px 10px" data-loser="${i}" ${p.skipped?'disabled':''}>Lost</button>`;
+    }
+    return `<div class="pc${p.skipped?' skipped':''}${broke&&!S.splitMode?' broke':''}${isSel?' split-sel':''}">
+      <div class="pc-top">
+        <div class="pc-left">
+          <div ${avS(i,false)}>${ini(p.name)}</div>
+          <div>
+            <div class="pname${broke?' broke':''}">${p.name}${brokeBadge}${skipBadge}${splitBadge}</div>
+            <div class="bal ${bc}">${bs}</div>
+          </div>
+        </div>
+        ${actionBtn}
+      </div>
+      ${!S.splitMode?`<div class="pc-actions">
+        <button class="btn" style="font-size:12px;padding:4px 10px" data-skip="${i}">${p.skipped?'Unskip':'Skip round'}</button>
+        <button class="btn red" style="font-size:12px;padding:4px 10px" data-remove="${i}">Remove</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  const confirmSplit=S.splitMode&&S.splitSelected.length===2
+    ?`<button class="btn purple-solid full" id="confirm-split" style="margin-bottom:1rem;color:#fff">Confirm split loss</button>`:'';
+
+  let debtSection='';
+  if(S.history.length&&net){
+    const blocks=S.players.map((p,i)=>{
+      const debts=[];
+      for(let j=0;j<S.players.length;j++){if(net[i][j]>0)debts.push({to:S.players[j].name,amt:net[i][j]});}
+      const lines=debts.length
+        ?debts.map(d=>`<div class="dl">owes <span class="dto">${d.to}</span> <span class="damt">${d.amt.toLocaleString()} &#x20AE;</span></div>`).join('')
+        :`<div class="dnone">all clear</div>`;
+      return `<div class="db">
+        <div class="dh"><div ${avS(i,true)}>${ini(p.name)}</div><div class="dhn">${p.name}</div></div>
+        <div class="dbody">${lines}</div>
+      </div>`;
+    }).join('');
+    debtSection=`<div class="sec">Who owes who</div>${blocks}`;
+  }
+
+  const hist=S.history.length?`<div class="sec">Round history</div><div class="hist-box">${
+    S.history.slice().reverse().map(h=>{
+      if(h.type==='added')return `<div class="hi">+ ${h.name} joined</div>`;
+      if(h.type==='removed')return `<div class="hi">- ${h.name} left</div>`;
+      if(h.type==='round'){
+        const names=h.losers.map(li=>S.players[li]?.name||'?').join(' & ');
+        const tag=h.split?` <span style="color:#a87ae0">(split)</span>`:'';
+        return `<div class="hi">Round ${h.round}: <strong style="color:#e05c5c">${names}</strong> lost${tag}</div>`;
+      }
+      return '';
+    }).join('')
+  }</div>`:'';
+
+  return `<div class="round-bar">
+    <div><div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:0.06em">Round</div><div style="font-size:20px;font-weight:700;color:#fff">${S.round}</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn purple" id="split-btn" style="font-size:12px;padding:6px 10px" ${S.splitMode?'disabled':''}>Split</button>
+      <button class="btn green" id="add-btn" style="font-size:12px;padding:6px 10px">+ Add</button>
+      <button class="btn yellow" id="end-btn" style="font-size:12px;padding:6px 10px">&#9873; End</button>
+      <button class="btn muted" id="reset-btn" style="font-size:12px;padding:6px 10px">&#8635;</button>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  ${splitBar}
+  ${confirmSplit}
+  ${cards}
+  ${debtSection}
+  ${hist}`;
+}
+
+function showToast(msg,color){
+  const t=document.getElementById('toast');
+  if(!t)return;
+  t.style.display='block';t.textContent=msg;
+  if(color==='purple'){t.style.background='#221a2e';t.style.color='#a87ae0';t.style.border='1px solid #a87ae0';}
+  else{t.style.background='#2a1a1a';t.style.color='#e05c5c';t.style.border='1px solid #e05c5c';}
+  setTimeout(()=>t.style.display='none',2800);
+}
+
+function showAddModal(){
+  const root=document.getElementById('modal-root');
+  root.innerHTML=`<div class="modal-bg" id="mbg">
+    <div class="modal">
+      <h3>Add player</h3>
+      <div class="name-row" style="margin-bottom:1rem"><input type="text" id="new-name" placeholder="Player name" maxlength="16" style="flex:1"/></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn gold" style="flex:1;padding:12px" id="confirm-add">Add to game</button>
+        <button class="btn muted" style="flex:1;padding:12px" id="cancel-add">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('cancel-add').onclick=()=>root.innerHTML='';
+  document.getElementById('mbg').onclick=(e)=>{if(e.target.id==='mbg')root.innerHTML='';};
+  document.getElementById('confirm-add').onclick=()=>{
+    const name=document.getElementById('new-name').value.trim();
+    if(!name)return;
+    S.players.push({name,balance:0,skipped:false});
+    S.history.push({type:'added',name});
+    root.innerHTML='';render();showToast(name+' added!');
+  };
+  document.getElementById('new-name').focus();
+}
+
+function doSplitLoss(losers){
+  const active=S.players.map((_,i)=>i).filter(i=>!S.players[i].skipped);
+  const winners=active.filter(i=>!losers.includes(i));
+  const half=Math.floor(S.penalty/2);
+  losers.forEach(li=>{S.players[li].balance-=half*winners.length;});
+  winners.forEach(i=>{S.players[i].balance+=half*losers.length;});
+  S.players.forEach(p=>p.skipped=false);
+  S.history.push({type:'round',round:S.round,losers,active,split:true});
+  S.round++;S.splitMode=false;S.splitSelected=[];
+  render();
+  const names=losers.map(li=>S.players[li]?.name).join(' & ');
+  showToast(names+' split the loss! Each paid '+half.toLocaleString()+' &#x20AE;','purple');
+}
+
+function attachEvents(){
+  document.querySelectorAll('.nb').forEach(b=>{b.onclick=()=>{S.count=+b.dataset.n;render();};});
+  const pi=document.getElementById('penalty-in');
+  if(pi)pi.oninput=()=>{const v=parseInt(pi.value);if(v>0)S.penalty=v;};
+  const next=document.getElementById('next-btn');
+  if(next)next.onclick=()=>{if(S.count>=2){S.names=Array(S.count).fill('');S.screen='names';render();}};
+  const back=document.getElementById('back-btn');
+  if(back)back.onclick=()=>{S.screen='setup';render();};
+  document.querySelectorAll('input[data-i]').forEach(inp=>{
+    inp.oninput=()=>{
+      const i=+inp.dataset.i;S.names[i]=inp.value;
+      const av=document.getElementById('av'+i);
+      if(av)av.textContent=inp.value?ini(inp.value):(i+1);
+      const sb=document.getElementById('start-btn');
+      if(sb){const r=S.names.filter(n=>n&&n.trim()).length===S.count;sb.disabled=!r;}
+    };
+  });
+  const start=document.getElementById('start-btn');
+  if(start)start.onclick=()=>{
+    S.players=S.names.map(n=>({name:n.trim(),balance:0,skipped:false}));
+    S.round=1;S.history=[];S.splitMode=false;S.splitSelected=[];S.screen='game';render();
+  };
+  document.querySelectorAll('[data-loser]').forEach(b=>{
+    b.onclick=()=>{
+      const li=+b.dataset.loser;
+      const loser=S.players[li];
+      const active=S.players.map((_,i)=>i).filter(i=>!S.players[i].skipped);
+      const winners=active.filter(i=>i!==li);
+      loser.balance-=S.penalty*winners.length;
+      winners.forEach(i=>S.players[i].balance+=S.penalty);
+      S.players.forEach(p=>p.skipped=false);
+      S.history.push({type:'round',round:S.round,losers:[li],active,split:false});
+      S.round++;render();
+      showToast(loser.name+' lost round '+(S.round-1)+'!');
+    };
+  });
+  document.querySelectorAll('[data-split-sel]').forEach(b=>{
+    b.onclick=()=>{
+      const i=+b.dataset.splitSel;
+      if(S.splitSelected.includes(i))S.splitSelected=S.splitSelected.filter(x=>x!==i);
+      else if(S.splitSelected.length<2)S.splitSelected.push(i);
+      render();
+    };
+  });
+  const cs=document.getElementById('confirm-split');
+  if(cs)cs.onclick=()=>doSplitLoss(S.splitSelected);
+  const cancelSplit=document.getElementById('cancel-split');
+  if(cancelSplit)cancelSplit.onclick=()=>{S.splitMode=false;S.splitSelected=[];render();};
+  const splitBtn=document.getElementById('split-btn');
+  if(splitBtn)splitBtn.onclick=()=>{S.splitMode=true;S.splitSelected=[];render();};
+  document.querySelectorAll('[data-skip]').forEach(b=>{
+    b.onclick=()=>{S.players[+b.dataset.skip].skipped=!S.players[+b.dataset.skip].skipped;render();};
+  });
+  document.querySelectorAll('[data-remove]').forEach(b=>{
+    b.onclick=()=>{
+      const i=+b.dataset.remove;const name=S.players[i].name;
+      if(!confirm('Remove '+name+'?'))return;
+      S.history.push({type:'removed',name});S.players.splice(i,1);render();
+      showToast(name+' removed.');
+    };
+  });
+  const add=document.getElementById('add-btn');
+  if(add)add.onclick=showAddModal;
+  const end=document.getElementById('end-btn');
+  if(end)end.onclick=()=>{if(confirm('End the game and see final results?')){S.screen='summary';render();}};
+  const reset=document.getElementById('reset-btn');
+  if(reset)reset.onclick=()=>{if(confirm('Start a new game? All data will be reset.')){S={screen:'setup',count:0,names:[],penalty:1000,players:[],round:1,history:[],splitMode:false,splitSelected:[]};render();}};
+  const rematch=document.getElementById('rematch-btn');
+  if(rematch)rematch.onclick=()=>{
+    S.players.forEach(p=>{p.balance=0;p.skipped=false;});
+    S.round=1;S.history=[];S.splitMode=false;S.splitSelected=[];S.screen='game';render();
+    showToast('Rematch! Same players, fresh start.','purple');
+  };
+  const newgame=document.getElementById('newgame-btn');
+  if(newgame)newgame.onclick=()=>{S={screen:'setup',count:0,names:[],penalty:1000,players:[],round:1,history:[],splitMode:false,splitSelected:[]};render();};
+}
+render();
+</script>
+</body>
+</html>
